@@ -1,8 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
-
-
-learning_weight = 0.01
+import tensorflow.models.image.mnist as mnist
+learning_rate = 0.01
 n_inputs = 28 * 28
 n_hidden1 = 300
 n_hidden2 = 150
@@ -22,5 +21,20 @@ with tf.contrib.framework.arg_scope(
     hidden3 = fully_connected(hidden2, n_hidden3)
     outputs = fully_connected(hidden3, n_outputs, activation_fn=None)
 
+reconstruction_loss = tf.reduce_mean(tf.square(outputs - X))
+reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+loss = tf.add_n([reconstruction_loss] + reg_losses)
 
+optimizer = tf.train.AdamOptimizer(learning_rate)
+training_op = optimizer.minimize(loss)
+init = tf.global_variables_initializer()
 
+n_epochs = 5
+batch_size = 150
+with tf.Session() as sess:
+    init.run()
+    for epoch in range(n_epochs):
+        n_batches = mnist.train.num_examples
+        for iteration in range(n_batches):
+            X_batch, y_batch = mnist.train.next_batch(batch_size)
+            sess.run(training_op, feed_dict={X: X_batch})

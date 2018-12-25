@@ -6,7 +6,7 @@ def kl_divergence(p, q):
     return p * tf.log(p / q) + (1 - p) * tf.log((1 - p) / (1 - q))
 
 
-learning_weight = 0.01
+learning_rate = 0.01
 sparsity_target = 0.1
 sparsity_weight = 0.2
 n_inputs = 28 * 28
