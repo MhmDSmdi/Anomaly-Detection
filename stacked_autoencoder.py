@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
-import tensorflow.models.image.mnist as mnist
+from tensorflow.examples.tutorials.mnist import input_data
+
 learning_rate = 0.01
 n_inputs = 28 * 28
 n_hidden1 = 300
@@ -9,6 +10,7 @@ n_hidden3 = n_hidden1
 n_outputs = n_inputs
 
 l2_reg = 0.001
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
 X = tf.placeholder(tf.float32, shape=[None, n_inputs])
 with tf.contrib.framework.arg_scope(
