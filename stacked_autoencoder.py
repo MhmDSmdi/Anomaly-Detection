@@ -2,13 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
 
 
-def kl_divergence(p, q):
-    return p * tf.log(p / q) + (1 - p) * tf.log((1 - p) / (1 - q))
-
-
 learning_weight = 0.01
-sparsity_target = 0.1
-sparsity_weight = 0.2
 n_inputs = 28 * 28
 n_hidden1 = 300
 n_hidden2 = 150
@@ -27,3 +21,6 @@ with tf.contrib.framework.arg_scope(
     hidden2 = fully_connected(hidden1, n_hidden2)
     hidden3 = fully_connected(hidden2, n_hidden3)
     outputs = fully_connected(hidden3, n_outputs, activation_fn=None)
+
+
+
