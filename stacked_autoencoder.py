@@ -1,3 +1,5 @@
+import sys
+
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
 from tensorflow.examples.tutorials.mnist import input_data
@@ -10,7 +12,7 @@ n_hidden3 = n_hidden1
 n_outputs = n_inputs
 
 l2_reg = 0.001
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("/tmp/data/")
 
 X = tf.placeholder(tf.float32, shape=[None, n_inputs])
 with tf.contrib.framework.arg_scope(
@@ -30,6 +32,7 @@ loss = tf.add_n([reconstruction_loss] + reg_losses)
 optimizer = tf.train.AdamOptimizer(learning_rate)
 training_op = optimizer.minimize(loss)
 init = tf.global_variables_initializer()
+saver = tf.train.Saver()
 
 n_epochs = 5
 batch_size = 150
@@ -38,5 +41,10 @@ with tf.Session() as sess:
     for epoch in range(n_epochs):
         n_batches = mnist.train.num_examples
         for iteration in range(n_batches):
+            print("\r{}%".format(100 * iteration // n_batches), end="")
+            sys.stdout.flush()
             X_batch, y_batch = mnist.train.next_batch(batch_size)
             sess.run(training_op, feed_dict={X: X_batch})
+        loss_train = reconstruction_loss.eval(feed_dict={X: X_batch})
+        print("\r{}".format(epoch), "Train MSE:", loss_train)
+        saver.save(sess, "./my_model_all_layers.ckpt")
