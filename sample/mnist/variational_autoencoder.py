@@ -1,11 +1,9 @@
 import numpy as np
 
 import tensorflow as tf
-from keras.datasets import mnist
-
 
 # Gaussian MLP as encoder
-import mnist_data
+from sample.mnist import mnist_data
 
 
 def gaussian_MLP_encoder(x, n_hidden, n_output, keep_prob):
