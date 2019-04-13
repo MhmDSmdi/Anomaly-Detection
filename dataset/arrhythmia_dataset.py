@@ -90,17 +90,17 @@ def load_graph(input_address, output_name="g1_out.embeddings", number_walks=10, 
 
 
 def prepare_data_set_matrix(matrix_address, node_numbers, output_name):
-    adj_matrix_to_list(matrix_address, node_numbers, "adj_list_{}".format(output_name))
-    load_graph(input_address="./adj_list_{}".format(output_name), output_name="embedding_{}".format(output_name))
-    output_file = open("./output_{}".format(output_name), 'w')
-    file = open("embedding_{}".format(output_name), 'r')
+    adj_matrix_to_list(matrix_address, node_numbers, "adj_list_{}.txt".format(output_name))
+    load_graph(input_address="./adj_list_{}.txt".format(output_name), output_name="embedding_{}.txt".format(output_name))
+    output_file = open("./output_{}.txt".format(output_name), 'w')
+    file = open("embedding_{}.txt".format(output_name), 'r')
     line = file.readline()
     while line:
         line = file.readline()
         line = line.split(" ")
         line.pop(0)
         for x in line:
-            output_file.write(x + " ")
+            output_file.write(" " + x)
     file.close()
     output_file.close()
 
@@ -114,5 +114,5 @@ def load_dataSet(embedding_file_address, feature_numbers):
 
 
 if __name__ == '__main__':
-    prepare_data_set_matrix("./adj.txt", 452, "DataSet")
-    # load_dataSet("./g1_out.embeddings", 16)
+    # prepare_data_set_matrix("./adj.txt", 452, "DataSet")
+    load_dataSet("./output_DataSet.txt", 16)
