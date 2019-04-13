@@ -1,52 +1,48 @@
 import random
 
+import numpy as np
 from gensim.models import Word2Vec
 from scipy.io import loadmat
 
 from deepwalk import graph
 from deepwalk import walks as serialized_walks
 from deepwalk.skipgram import Skipgram
-import numpy as np
-
-data = loadmat("./arrhythmia.mat")
-X = data['X']
-y = data['y']
 
 
-def load_data_set(train_size, test_size):
-    X_train = X[: train_size, :]
-    X_test = X[train_size:, :]
-    y_train = y[: train_size]
-    y_test = y[train_size:]
-    return (X_train, X_test), (y_train, y_test)
-
-
-def adj_matrix_to_list(address, node_numbers):
+def adj_matrix_to_list(address, node_numbers, output_name):
     adj_matrix = np.loadtxt(address, usecols=range(node_numbers))
     adj_list = []
     for i in range(node_numbers):
-        adj_list.insert(i, [])
+        if adj_matrix[i, i] == 1:
+            adj_list.append([i])
+        else:
+            adj_list.append([])
         for j in range(node_numbers):
-            if adj_matrix[i, j] == 1:
+            if adj_matrix[i, j] == 1 and i != j:
                 adj_list[i].append(j)
+    create_adj_list_file(adj_list, output_name)
     return adj_list
 
 
-def print_adj_list(adj_list):
+def create_adj_list_file(adj_list, file_name):
+    file = open(file_name, 'w')
     for i in range(len(adj_list)):
         for j in range(len(adj_list[i])):
-            print((adj_list[i]))
+            file.write(str((adj_list[i])[j]))
+            file.write(" ")
+        file.write("\n")
+    file.close()
 
 
-def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_length=40,
-               max_memory_data_size=1000000000, matfile_variable_name="network", fromat='adjlist', undirected=True,
+def load_graph(input_address, output_name="g1_out.embeddings", number_walks=10, walk_length=40,
+               max_memory_data_size=1000000000, matfile_variable_name="network", format='adjlist', undirected=True,
                representation_size=16, workers=1, window_size=5, vertex_freq_degree=False, seed=0):
     if format == "adjlist":
-        G = graph.load_adjacencylist(input, undirected=undirected)
+        G = graph.load_adjacencylist(input_address, undirected=undirected)
     elif format == "edgelist":
-        G = graph.load_edgelist(input, undirected=undirected)
+        G = graph.load_edgelist(input_address, undirected=undirected)
     elif format == "mat":
-        G = graph.load_matfile(input, variable_name=matfile_variable_name, undirected=undirected)
+        G = graph.load_matfile(input_address, variable_name=matfile_variable_name, undirected=undirected)
     else:
         raise Exception("Unknown file format: '%s'.  Valid formats: 'adjlist', 'edgelist', 'mat'" % format)
 
@@ -71,7 +67,7 @@ def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_
                                                                                                              max_memory_data_size))
         print("Walking...")
 
-        walks_filebase = output + ".walks"
+        walks_filebase = output_name + ".walks"
         walk_files = serialized_walks.write_walks_to_disk(G, walks_filebase, num_paths=number_walks,
                                                           path_length=walk_length, alpha=0,
                                                           rand=random.Random(seed),
@@ -90,15 +86,33 @@ def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_
                          size=representation_size,
                          window=window_size, min_count=0, trim_rule=None, workers=workers)
 
-    model.wv.save_word2vec_format(output)
+    model.wv.save_word2vec_format(output_name)
 
-# (X_train, X_test), (y_train, y_test) = load_data_set(300, 152)
-# print(X_train.shape)
-# print(X_test.shape)
-# print(y_train.shape)
-# print(y_test.shape)
+
+def prepare_data_set_matrix(matrix_address, node_numbers, output_name):
+    adj_matrix_to_list(matrix_address, node_numbers, "adj_list_{}".format(output_name))
+    load_graph(input_address="./adj_list_{}".format(output_name), output_name="embedding_{}".format(output_name))
+    output_file = open("./output_{}".format(output_name), 'w')
+    file = open("embedding_{}".format(output_name), 'r')
+    line = file.readline()
+    while line:
+        line = file.readline()
+        line = line.split(" ")
+        line.pop(0)
+        for x in line:
+            output_file.write(x + " ")
+    file.close()
+    output_file.close()
+
+
+def load_dataSet(embedding_file_address, feature_numbers):
+    data = loadmat("./arrhythmia.mat")
+    y = data['y']
+    X = np.loadtxt(embedding_file_address, usecols=range(feature_numbers))
+    print(X.shape, len(y))
+    return X, y
 
 
 if __name__ == '__main__':
-    print_adj_list(adj_matrix_to_list("./adj.txt", 452))
-
+    prepare_data_set_matrix("./adj.txt", 452, "DataSet")
+    # load_dataSet("./g1_out.embeddings", 16)
