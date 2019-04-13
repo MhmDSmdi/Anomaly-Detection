@@ -6,6 +6,7 @@ from scipy.io import loadmat
 from deepwalk import graph
 from deepwalk import walks as serialized_walks
 from deepwalk.skipgram import Skipgram
+import numpy as np
 
 data = loadmat("./arrhythmia.mat")
 X = data['X']
@@ -20,7 +21,26 @@ def load_data_set(train_size, test_size):
     return (X_train, X_test), (y_train, y_test)
 
 
-def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_length=40, max_memory_data_size=1000000000 , matfile_variable_name= "network", fromat='adjlist', undirected=True, representation_size=16, workers=1, window_size=5, vertex_freq_degree=False, seed=0):
+def adj_matrix_to_list(address, node_numbers):
+    adj_matrix = np.loadtxt(address, usecols=range(node_numbers))
+    adj_list = []
+    for i in range(node_numbers):
+        adj_list.insert(i, [])
+        for j in range(node_numbers):
+            if adj_matrix[i, j] == 1:
+                adj_list[i].append(j)
+    return adj_list
+
+
+def print_adj_list(adj_list):
+    for i in range(len(adj_list)):
+        for j in range(len(adj_list[i])):
+            print((adj_list[i]))
+
+
+def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_length=40,
+               max_memory_data_size=1000000000, matfile_variable_name="network", fromat='adjlist', undirected=True,
+               representation_size=16, workers=1, window_size=5, vertex_freq_degree=False, seed=0):
     if format == "adjlist":
         G = graph.load_adjacencylist(input, undirected=undirected)
     elif format == "edgelist":
@@ -72,9 +92,13 @@ def load_graph(input_address, output="g1_out.embeddings", number_walks=10, walk_
 
     model.wv.save_word2vec_format(output)
 
+# (X_train, X_test), (y_train, y_test) = load_data_set(300, 152)
+# print(X_train.shape)
+# print(X_test.shape)
+# print(y_train.shape)
+# print(y_test.shape)
 
-(X_train, X_test), (y_train, y_test) = load_data_set(300, 152)
-print(X_train.shape)
-print(X_test.shape)
-print(y_train.shape)
-print(y_test.shape)
+
+if __name__ == '__main__':
+    print_adj_list(adj_matrix_to_list("./adj.txt", 452))
+

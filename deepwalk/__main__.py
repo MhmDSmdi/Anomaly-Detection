@@ -112,7 +112,7 @@ def main():
                         help='File format of input file')
 
     parser.add_argument('--input', nargs='?', required=False,
-                        help='Input graph file', default="/home/mhmd/PycharmProjects/deepwalk/MyTest/g1.adjlist")
+                        help='Input graph file', default="./")
 
     parser.add_argument("-l", "--log", dest="log", default="INFO",
                         help="log verbosity level")
