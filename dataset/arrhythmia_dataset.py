@@ -25,8 +25,8 @@ class ArrhythmiaDataSet:
         self.create_adj_list_file(adj_list, output_name)
         return adj_list
 
-    def create_adj_list_file(self, adj_list, file_name):
-        file = open(file_name, 'w')
+    def create_adj_list_file(self, adj_list, output_name):
+        file = open("./dataset/{}".format(output_name), 'w')
         for i in range(len(adj_list)):
             for j in range(len(adj_list[i])):
                 file.write(str((adj_list[i])[j]))
@@ -88,14 +88,15 @@ class ArrhythmiaDataSet:
                              size=representation_size,
                              window=window_size, min_count=0, trim_rule=None, workers=workers)
 
-        model.wv.save_word2vec_format(output_name)
+        model.wv.save_word2vec_format("./dataset/{}".format(output_name))
 
-    def prepare_data_set_matrix(self, matrix_address, node_numbers, output_name):
+    def prepare_data_set_matrix(self, matrix_address, node_numbers, output_name, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5):
         self.adj_matrix_to_list(matrix_address, node_numbers, "adj_list_{}.txt".format(output_name))
-        self.load_graph(input_address="./adj_list_{}.txt".format(output_name),
-                        output_name="embedding_{}.txt".format(output_name))
-        output_file = open("./output_{}.txt".format(output_name), 'w')
-        file = open("embedding_{}.txt".format(output_name), 'r')
+        self.load_graph(input_address="./dataset/adj_list_{}.txt".format(output_name),
+                        output_name="embedding_{}.txt".format(output_name), number_walks=number_walks, walk_length=walk_length,
+                        representation_size=representation_size, workers=workers, window_size=window_size)
+        output_file = open("./dataset/output_{}.txt".format(output_name), 'w')
+        file = open("./dataset/embedding_{}.txt".format(output_name), 'r')
         line = file.readline()
         while line:
             line = file.readline()
@@ -106,18 +107,20 @@ class ArrhythmiaDataSet:
         file.close()
         output_file.close()
 
-
-def load_dataSet(test_size, embedding_file_address="./dataset/output_DataSet.txt", feature_numbers=16):
-    data = loadmat("./dataset/arrhythmia.mat")
-    y = data['y']
-    X = np.loadtxt(embedding_file_address, usecols=range(feature_numbers))
-    X_train = X[: test_size, :]
-    X_test = X[test_size:, :]
-    y_train = y[: test_size]
-    y_test = y[test_size:]
-    print(X.shape, len(y))
-    return (X_train, X_test), (y_train, y_test)
+    def load_dataSet(self, test_size=120, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5, create=True):
+        if create:
+            self.prepare_data_set_matrix("./dataset/adj.txt", 452, "DataSet", number_walks=number_walks, walk_length=walk_length, representation_size=representation_size, workers=workers, window_size=window_size)
+        data = loadmat("./dataset/arrhythmia.mat")
+        y = data['y']
+        X = np.loadtxt("./dataset/output_DataSet.txt", usecols=range(representation_size))
+        X_train = X[: test_size, :]
+        X_test = X[test_size:, :]
+        y_train = y[: test_size]
+        y_test = y[test_size:]
+        print(X.shape, len(y))
+        return (X_train, X_test), (y_train, y_test)
 
 
 if __name__ == '__main__':
-    load_dataSet(120)
+    a = ArrhythmiaDataSet()
+    a.load_dataSet(120)

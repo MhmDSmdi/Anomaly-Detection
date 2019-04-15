@@ -12,7 +12,6 @@ from keras.layers import Lambda, Input, Dense
 from keras.losses import binary_crossentropy
 from keras.models import Model
 from dataset.arrhythmia_dataset import ArrhythmiaDataSet
-from dataset.arrhythmia_dataset import load_dataSet
 
 
 def sampling(args):
@@ -25,14 +24,15 @@ def sampling(args):
 
 
 # Arrhythmia dataset
-(x_train, x_test), (y_train, y_test) = load_dataSet(test_size=120)
+arrhythmia = ArrhythmiaDataSet()
+(x_train, x_test), (y_train, y_test) = arrhythmia.load_dataSet(test_size=100, representation_size=128, create=False)
 feature_size = x_train.shape[1]
 # network parameters
 input_shape = (feature_size, )
-intermediate_dim = 512
-batch_size = 5
+intermediate_dim = 8
+batch_size = 4
 latent_dim = 2
-epochs = 50
+epochs = 300
 
 # VAE model = encoder + decoder
 # build encoder model
