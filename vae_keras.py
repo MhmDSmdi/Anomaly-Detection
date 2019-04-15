@@ -10,6 +10,7 @@ from keras import backend as K
 from keras.datasets import mnist
 from keras.layers import Lambda, Input, Dense
 from keras.losses import binary_crossentropy
+from keras import losses
 from keras.models import Model
 from dataset.arrhythmia_dataset import ArrhythmiaDataSet
 
@@ -25,14 +26,14 @@ def sampling(args):
 
 # Arrhythmia dataset
 arrhythmia = ArrhythmiaDataSet()
-(x_train, x_test), (y_train, y_test) = arrhythmia.load_dataSet(test_size=100, representation_size=128, create=False)
+(x_train, x_test), (y_train, y_test) = arrhythmia.load_dataSet(train_size=350, representation_size=128, create=False)
 feature_size = x_train.shape[1]
 # network parameters
 input_shape = (feature_size, )
-intermediate_dim = 8
-batch_size = 4
+intermediate_dim = 16
+batch_size = 1
 latent_dim = 2
-epochs = 300
+epochs = 100
 
 # VAE model = encoder + decoder
 # build encoder model
@@ -63,18 +64,18 @@ vae = Model(inputs, outputs, name='vae_mlp')
 
 models = (encoder, decoder)
 data = (x_test, y_test)
-reconstruction_loss = binary_crossentropy(inputs, outputs)
-reconstruction_loss *= feature_size
-kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
-kl_loss = K.sum(kl_loss, axis=-1)
-kl_loss *= -0.5
-vae_loss = K.mean(reconstruction_loss + kl_loss)
-vae.add_loss(vae_loss)
-vae.compile(optimizer='adam')
+# reconstruction_loss = binary_crossentropy(inputs, outputs)
+# reconstruction_loss *= feature_size
+# kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
+# kl_loss = K.sum(kl_loss, axis=-1)
+# kl_loss *= -0.5
+# vae_loss = K.mean(reconstruction_loss + kl_loss)
+# vae.add_loss(vae_loss)
+vae.compile(optimizer='adam', loss=losses.binary_crossentropy)
 vae.summary()
 
-vae.fit(x_train,
+vae.fit(x_train, x_train,
         epochs=epochs,
         batch_size=batch_size,
-        validation_data=(x_test, None))
+        validation_data=(x_test, x_test))
 vae.save_weights('vae_mlp_arrhythmia.h5')

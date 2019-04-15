@@ -107,16 +107,16 @@ class ArrhythmiaDataSet:
         file.close()
         output_file.close()
 
-    def load_dataSet(self, test_size=120, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5, create=True):
+    def load_dataSet(self, train_size=120, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5, create=True):
         if create:
             self.prepare_data_set_matrix("./dataset/adj.txt", 452, "DataSet", number_walks=number_walks, walk_length=walk_length, representation_size=representation_size, workers=workers, window_size=window_size)
         data = loadmat("./dataset/arrhythmia.mat")
         y = data['y']
         X = np.loadtxt("./dataset/output_DataSet.txt", usecols=range(representation_size))
-        X_train = X[: test_size, :]
-        X_test = X[test_size:, :]
-        y_train = y[: test_size]
-        y_test = y[test_size:]
+        X_train = X[: train_size, :]
+        X_test = X[train_size:, :]
+        y_train = y[: train_size]
+        y_test = y[train_size:]
         print(X.shape, len(y))
         return (X_train, X_test), (y_train, y_test)
 
