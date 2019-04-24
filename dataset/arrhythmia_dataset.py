@@ -11,6 +11,8 @@ from deepwalk.skipgram import Skipgram
 
 class ArrhythmiaDataSet:
 
+    NODE_NUMBER = 452
+
     def adj_matrix_to_list(self, address, node_numbers, output_name):
         adj_matrix = np.loadtxt(address, usecols=range(node_numbers))
         adj_list = []
@@ -109,16 +111,27 @@ class ArrhythmiaDataSet:
 
     def load_dataSet(self, train_size=120, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5, create=True):
         if create:
-            self.prepare_data_set_matrix("./dataset/adj.txt", 452, "DataSet", number_walks=number_walks, walk_length=walk_length, representation_size=representation_size, workers=workers, window_size=window_size)
+            self.prepare_data_set_matrix("./dataset/adj.txt", self.NODE_NUMBER, "DataSet", number_walks=number_walks, walk_length=walk_length, representation_size=representation_size, workers=workers, window_size=window_size)
         data = loadmat("./dataset/arrhythmia.mat")
-        y = data['y']
+        labels = data['y']
         X = np.loadtxt("./dataset/output_DataSet.txt", usecols=range(representation_size))
-        X_train = X[: train_size, :]
-        X_test = X[train_size:, :]
-        y_train = y[: train_size]
-        y_test = y[train_size:]
-        print(X.shape, len(y))
-        return (X_train, X_test), (y_train, y_test)
+        X_train =[]
+        X_test = []
+        # y_train = y[: train_size]
+        # for i in range(len(y_train)):
+        #     if y_train[i] == 1:
+        #         X_train.insert(X[i])
+        #
+        # X_test = X[train_size:, :]
+        # y_test = y[train_size:]
+        for i in range(len(labels)):
+            if labels[i] == 1:
+                X_train.insert(i, X[i])
+            else:
+                X_test.insert(i, X[i])
+        X_test = np.array(X_test)
+        X_train = np.array(X_train)
+        return X_train, X_test
 
 
 if __name__ == '__main__':
