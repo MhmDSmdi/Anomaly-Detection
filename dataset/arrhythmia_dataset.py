@@ -10,7 +10,6 @@ from deepwalk.skipgram import Skipgram
 
 
 class ArrhythmiaDataSet:
-
     NODE_NUMBER = 452
 
     def adj_matrix_to_list(self, address, node_numbers, output_name):
@@ -92,10 +91,12 @@ class ArrhythmiaDataSet:
 
         model.wv.save_word2vec_format("./dataset/{}".format(output_name))
 
-    def prepare_data_set_matrix(self, matrix_address, node_numbers, output_name, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5):
+    def prepare_data_set_matrix(self, matrix_address, node_numbers, output_name, number_walks=10, walk_length=40,
+                                representation_size=16, workers=1, window_size=5):
         self.adj_matrix_to_list(matrix_address, node_numbers, "adj_list_{}.txt".format(output_name))
         self.load_graph(input_address="./dataset/adj_list_{}.txt".format(output_name),
-                        output_name="embedding_{}.txt".format(output_name), number_walks=number_walks, walk_length=walk_length,
+                        output_name="embedding_{}.txt".format(output_name), number_walks=number_walks,
+                        walk_length=walk_length,
                         representation_size=representation_size, workers=workers, window_size=window_size)
         output_file = open("./dataset/output_{}.txt".format(output_name), 'w')
         file = open("./dataset/embedding_{}.txt".format(output_name), 'r')
@@ -109,31 +110,33 @@ class ArrhythmiaDataSet:
         file.close()
         output_file.close()
 
-    def load_dataSet(self, train_size=120, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5, create=True):
+    def load_dataSet(self, number_walks=10, walk_length=40, representation_size=16, workers=1, window_size=5,
+                     create=True):
         if create:
-            self.prepare_data_set_matrix("./dataset/adj.txt", self.NODE_NUMBER, "DataSet", number_walks=number_walks, walk_length=walk_length, representation_size=representation_size, workers=workers, window_size=window_size)
+            self.prepare_data_set_matrix("./dataset/adj.txt", self.NODE_NUMBER, "DataSet", number_walks=number_walks,
+                                         walk_length=walk_length, representation_size=representation_size,
+                                         workers=workers, window_size=window_size)
         data = loadmat("./dataset/arrhythmia.mat")
         labels = data['y']
+        label_list = [(labels[i])[0] for i in range(len(labels))]
         X = np.loadtxt("./dataset/output_DataSet.txt", usecols=range(representation_size))
-        X_train =[]
-        X_test = []
-        # y_train = y[: train_size]
-        # for i in range(len(y_train)):
-        #     if y_train[i] == 1:
-        #         X_train.insert(X[i])
-        #
-        # X_test = X[train_size:, :]
-        # y_test = y[train_size:]
+        return X, label_list
+
+    def get_anomaly(self):
+        data = loadmat("./dataset/arrhythmia.mat")
+        labels = data['y']
+        X = np.loadtxt("./dataset/output_DataSet.txt", usecols=range(128))
+        x_out = []
+        y_out = []
         for i in range(len(labels)):
             if labels[i] == 1:
-                X_train.insert(i, X[i])
-            else:
-                X_test.insert(i, X[i])
-        X_test = np.array(X_test)
-        X_train = np.array(X_train)
-        return X_train, X_test
+                x_out.append(X[i])
+                y_out.append(labels[i])
+        x_out = np.array(x_out)
+        return x_out, y_out
 
 
 if __name__ == '__main__':
     a = ArrhythmiaDataSet()
-    a.load_dataSet(120)
+    # a.load_dataSet(120)
+    a.num()
